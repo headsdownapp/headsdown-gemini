@@ -17,13 +17,23 @@ describe("HeadsDown MCP Server", () => {
     const client = await createTestClient();
     const result = await client.listTools();
     const names = result.tools.map((t) => t.name).sort();
-    expect(names).toEqual(["headsdown_auth", "headsdown_propose", "headsdown_status"]);
+    expect(names).toEqual(["headsdown_auth", "headsdown_outcome", "headsdown_propose", "headsdown_status"]);
   });
 
-  it("headsdown_propose requires a description", async () => {
+  it("headsdown_propose has expected fields", async () => {
     const client = await createTestClient();
     const result = await client.listTools();
     const propose = result.tools.find((t) => t.name === "headsdown_propose");
     expect(propose?.inputSchema.required).toContain("description");
+    expect(propose?.inputSchema.properties).toHaveProperty("scope_summary");
+    expect(propose?.inputSchema.properties).toHaveProperty("source_ref");
+  });
+
+  it("headsdown_outcome has expected required fields", async () => {
+    const client = await createTestClient();
+    const result = await client.listTools();
+    const outcome = result.tools.find((t) => t.name === "headsdown_outcome");
+    expect(outcome?.inputSchema.required).toContain("proposal_id");
+    expect(outcome?.inputSchema.required).toContain("outcome");
   });
 });

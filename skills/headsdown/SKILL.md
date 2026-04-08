@@ -17,9 +17,10 @@ This skill connects you to [HeadsDown](https://headsdown.app) so you're aware of
 ## MCP Tools
 
 - **`headsdown_status`**: Get current mode, status message, and schedule.
-- **`headsdown_propose`**: Submit a task description for a deterministic verdict.
+- **`headsdown_propose`**: Submit a task description for a deterministic verdict. Fields: `description`, `estimated_files`, `estimated_minutes`, `scope_summary`, `source_ref`.
+- **`headsdown_outcome`**: Report task outcome (success/failure/cancelled) with actual `files_modified` and `minutes_spent`.
 - **`headsdown_auth`**: Authenticate via Device Flow if you get a 401/Auth error.
 
 ## Gating Policy
 
-The extension includes a `BeforeTool` hook that gates modifications (like writing files) when you are in a focus mode. If a tool call is denied, it means you must submit a proposal via `headsdown_propose` first.
+The extension includes a `BeforeTool` hook that gates modifications (like writing files) when you are in a focus mode. If a tool call is denied, it means you must submit a proposal via `headsdown_propose` first. Once a proposal is approved, the hook allows subsequent modifications for that session. Finally, use `headsdown_outcome` to close the loop when the task is complete.

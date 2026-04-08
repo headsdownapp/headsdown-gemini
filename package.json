@@ -1,6 +1,6 @@
 {
   "name": "headsdown-gemini",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "HeadsDown availability extension for Gemini CLI.",
   "type": "module",
   "license": "MIT",
@@ -41,8 +41,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@headsdown/sdk": "git+https://github.com/headsdownapp/headsdown-sdk.git#d481abc8e2bb24b2350525d3b9c8712b43a8d9de",
-    "@modelcontextprotocol/sdk": "^1.12.0"
+    "@headsdown/sdk": "^0.1.0",
+    "@modelcontextprotocol/sdk": "^1.29.0"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",

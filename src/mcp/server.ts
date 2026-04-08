@@ -31,10 +31,26 @@ export function createServer(): Server {
           type: "object",
           properties: {
             description: { type: "string", description: "What you plan to do." },
-            estimated_files: { type: "number" },
-            estimated_minutes: { type: "number" }
+            estimated_files: { type: "number", description: "Estimated number of files to modify." },
+            estimated_minutes: { type: "number", description: "Estimated time in minutes." },
+            scope_summary: { type: "string", description: "Brief scope summary (e.g., 'Refactor auth hooks')." },
+            source_ref: { type: "string", description: "Reference (e.g., ticket ID, PR URL)." }
           },
           required: ["description"]
+        }
+      },
+      {
+        name: "headsdown_outcome",
+        description: "Report the outcome of a task (completed, failed, cancelled, etc.).",
+        inputSchema: {
+          type: "object",
+          properties: {
+            proposal_id: { type: "string", description: "The proposal ID from the verdict." },
+            outcome: { type: "string", enum: ["completed", "failed", "partially_completed", "cancelled", "timed_out"], description: "The task result." },
+            files_modified: { type: "number", description: "Actual number of files modified." },
+            minutes_spent: { type: "number", description: "Actual time spent in minutes." }
+          },
+          required: ["proposal_id", "outcome"]
         }
       },
       {
@@ -68,7 +84,9 @@ export function createServer(): Server {
             framework: "gemini-cli",
             description: (args?.description as string).trim(),
             estimatedFiles: args?.estimated_files as number,
-            estimatedMinutes: args?.estimated_minutes as number
+            estimatedMinutes: args?.estimated_minutes as number,
+            scopeSummary: args?.scope_summary as string,
+            sourceRef: args?.source_ref as string
           };
           const verdict = await client!.submitProposal(input);
           if (verdict.decision === "approved") {
@@ -80,6 +98,15 @@ export function createServer(): Server {
             });
           }
           return { content: [{ type: "text", text: JSON.stringify(verdict, null, 2) }] };
+        }
+        case "headsdown_outcome": {
+          const outcome = await client!.reportOutcome({
+            proposalId: args?.proposal_id as string,
+            outcome: args?.outcome as any,
+            filesModified: args?.files_modified as number,
+            actualDurationMinutes: args?.minutes_spent as number
+          });
+          return { content: [{ type: "text", text: JSON.stringify(outcome, null, 2) }] };
         }
         case "headsdown_auth": {
           const authClient = await HeadsDownClient.authenticate((auth) => {
