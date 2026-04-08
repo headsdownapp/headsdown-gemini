@@ -29,6 +29,10 @@ npm test
 npm run dev
 ```
 
+## Publishing
+
+This package is set up for npm Trusted Publishing from GitHub Actions. Create a GitHub release for the version you want to ship, then enable this repository as a trusted publisher in npm and the `Publish to npm` workflow will publish the release commit with provenance.
+
 ## Repository contents
 
 - `gemini-extension.json` - Gemini CLI extension manifest
