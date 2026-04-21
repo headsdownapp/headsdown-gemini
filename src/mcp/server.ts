@@ -75,8 +75,8 @@ export function createServer(): Server {
     try {
       switch (name) {
         case "headsdown_status": {
-          const { contract, calendar } = await client!.getAvailability();
-          return { content: [{ type: "text", text: JSON.stringify({ contract, calendar }, null, 2) }] };
+          const { contract, schedule } = await client!.getAvailability();
+          return { content: [{ type: "text", text: JSON.stringify({ contract, schedule }, null, 2) }] };
         }
         case "headsdown_propose": {
           const input = {
