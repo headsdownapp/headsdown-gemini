@@ -1,5 +1,6 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import * as HeadsDownSDK from "@headsdown/sdk";
 import {
   HeadsDownClient,
   ProposalStateStore,
@@ -81,7 +82,7 @@ export function createServer(): Server {
       switch (name) {
         case "headsdown_status": {
           const { contract, schedule } = await client!.getAvailability();
-          const wrapUpInstruction = buildWrapUpInstruction(schedule?.wrapUpGuidance);
+          const wrapUpInstruction = resolveExecutionInstruction({ contract, schedule });
           return {
             content: [
               {
@@ -120,7 +121,13 @@ export function createServer(): Server {
               evaluatedAt: verdict.evaluatedAt
             });
           }
-          const wrapUpInstruction = buildWrapUpInstruction(verdict.wrapUpGuidance);
+          const wrapUpInstruction = resolveExecutionInstruction({
+            verdict: {
+              decision: verdict.decision,
+              reason: verdict.reason,
+              wrapUpGuidance: verdict.wrapUpGuidance
+            }
+          });
           return {
             content: [
               {
@@ -186,7 +193,7 @@ function summarizeAvailability(
   if (schedule?.inReachableHours === false) {
     parts.push("Outside reachable hours");
   }
-  const wrapUpInstruction = buildWrapUpInstruction(schedule?.wrapUpGuidance);
+  const wrapUpInstruction = resolveExecutionInstruction({ contract, schedule });
   if (wrapUpInstruction) {
     parts.push(`Wrap-Up instruction: ${wrapUpInstruction}`);
   }
@@ -194,18 +201,48 @@ function summarizeAvailability(
   return parts.join(" · ");
 }
 
-function buildWrapUpInstruction(
-  guidance:
-    | {
-        active?: boolean;
-        selectedMode?: string;
-        remainingMinutes?: number | null;
-        reason?: string;
-        hints?: string[];
-      }
-    | null
-    | undefined,
-): string | null {
+function resolveExecutionInstruction(input: {
+  contract?: unknown;
+  schedule?: unknown;
+  verdict?: {
+    decision?: "approved" | "deferred";
+    reason?: string;
+    wrapUpGuidance?: {
+      active?: boolean;
+      selectedMode?: string;
+      remainingMinutes?: number | null;
+      reason?: string;
+      hints?: string[];
+    } | null;
+  } | null;
+}): string | null {
+  const describeExecutionDirective = (
+    HeadsDownSDK as unknown as {
+      describeExecutionDirective?: (value: {
+        contract?: unknown;
+        schedule?: unknown;
+        verdict?: unknown;
+      }) => { primaryDirective?: string };
+    }
+  ).describeExecutionDirective;
+
+  if (typeof describeExecutionDirective === "function") {
+    const directive = describeExecutionDirective(input);
+    return directive.primaryDirective ?? null;
+  }
+
+  const guidance =
+    input.verdict?.wrapUpGuidance ??
+    ((input.schedule as { wrapUpGuidance?: unknown } | undefined)?.wrapUpGuidance as
+      | {
+          active?: boolean;
+          selectedMode?: string;
+          remainingMinutes?: number | null;
+          reason?: string;
+          hints?: string[];
+        }
+      | undefined);
+
   if (!guidance || !guidance.active) {
     return null;
   }

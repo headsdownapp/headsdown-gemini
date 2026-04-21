@@ -1,3 +1,4 @@
+import * as HeadsDownSDK from "@headsdown/sdk";
 import { HeadsDownClient } from "@headsdown/sdk";
 
 /**
@@ -28,13 +29,13 @@ export async function handleSessionStart() {
       summary += "Reachable hours active.";
     }
 
-    const wrapUpInstruction = buildWrapUpInstruction(schedule.wrapUpGuidance);
+    const wrapUpInstruction = resolveExecutionInstruction({ contract, schedule });
     if (wrapUpInstruction) {
       summary += ` ${wrapUpInstruction}`;
     }
 
     return { systemMessage: summary };
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -46,8 +47,22 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-function buildWrapUpInstruction(
-  guidance:
+function resolveExecutionInstruction(input: { contract?: unknown; schedule?: unknown }): string | null {
+  const describeExecutionDirective = (
+    HeadsDownSDK as unknown as {
+      describeExecutionDirective?: (value: {
+        contract?: unknown;
+        schedule?: unknown;
+      }) => { primaryDirective?: string };
+    }
+  ).describeExecutionDirective;
+
+  if (typeof describeExecutionDirective === "function") {
+    const directive = describeExecutionDirective(input);
+    return directive.primaryDirective ?? null;
+  }
+
+  const guidance = (input.schedule as { wrapUpGuidance?: unknown } | undefined)?.wrapUpGuidance as
     | {
         active?: boolean;
         selectedMode?: "auto" | "wrap_up" | "full_depth";
@@ -55,9 +70,8 @@ function buildWrapUpInstruction(
         reason?: string;
         hints?: string[];
       }
-    | null
-    | undefined,
-): string | null {
+    | undefined;
+
   if (!guidance || !guidance.active) {
     return null;
   }
