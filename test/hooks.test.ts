@@ -30,7 +30,8 @@ describe("Hooks", () => {
       const result = await handleSessionStart();
       expect(result?.systemMessage).toContain("busy");
       expect(result?.systemMessage).toContain("Deep work");
-      expect(result?.systemMessage).toContain("Wrap-Up guidance");
+      expect(result?.systemMessage).toContain("Wrap-Up instruction");
+      expect(result?.systemMessage).toContain("Execution policy for this task");
     });
 
     it("returns null when no contract exists", async () => {
