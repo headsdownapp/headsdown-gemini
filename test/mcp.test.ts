@@ -27,6 +27,16 @@ describe("HeadsDown MCP Server", () => {
     expect(propose?.inputSchema.required).toContain("description");
     expect(propose?.inputSchema.properties).toHaveProperty("scope_summary");
     expect(propose?.inputSchema.properties).toHaveProperty("source_ref");
+    expect(propose?.inputSchema.properties).toHaveProperty("delivery_mode");
+  });
+
+  it("server source includes deliveryMode pass-through and status summary", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const source = await readFile(new URL("../src/mcp/server.ts", import.meta.url), "utf8");
+
+    expect(source).toContain("deliveryMode: parseDeliveryMode");
+    expect(source).toContain("wrapUpGuidance");
+    expect(source).toContain("summary: summarizeAvailability");
   });
 
   it("headsdown_outcome has expected required fields", async () => {
