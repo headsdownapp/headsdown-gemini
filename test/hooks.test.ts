@@ -20,7 +20,7 @@ describe("Hooks", () => {
       vi.mocked(HeadsDownClient.fromCredentials).mockResolvedValue({
         getAvailability: vi.fn().mockResolvedValue({
           contract: { mode: "busy", statusText: "Deep work" },
-          calendar: { workHours: true }
+          schedule: { inReachableHours: true }
         })
       } as any);
 
@@ -33,7 +33,7 @@ describe("Hooks", () => {
       vi.mocked(HeadsDownClient.fromCredentials).mockResolvedValue({
         getAvailability: vi.fn().mockResolvedValue({
           contract: null,
-          calendar: {}
+          schedule: { inReachableHours: false, nextWindow: null }
         })
       } as any);
 

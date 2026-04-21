@@ -6,7 +6,7 @@ import { HeadsDownClient } from "@headsdown/sdk";
 export async function handleSessionStart() {
   try {
     const client = await HeadsDownClient.fromCredentials();
-    const { contract, calendar } = await client.getAvailability();
+    const { contract, schedule } = await client.getAvailability();
 
     if (!contract) return null;
 
@@ -22,10 +22,10 @@ export async function handleSessionStart() {
       if (mins > 0) summary += `${mins}min remaining. `;
     }
 
-    if (calendar.offHours) {
-      summary += `Currently off-hours (Next workday: ${calendar.nextWorkday}).`;
-    } else if (calendar.workHours) {
-      summary += "Work hours active.";
+    if (!schedule.inReachableHours && schedule.nextWindow) {
+      summary += `Currently outside reachable hours (Next window: ${schedule.nextWindow.label} at ${schedule.nextWindow.startTime}).`;
+    } else if (schedule.inReachableHours) {
+      summary += "Reachable hours active.";
     }
 
     return { systemMessage: summary };
