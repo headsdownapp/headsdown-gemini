@@ -28,6 +28,12 @@ export async function handleSessionStart() {
       summary += "Reachable hours active.";
     }
 
+    if (schedule.wrapUpGuidance?.active) {
+      const remaining = schedule.wrapUpGuidance.remainingMinutes;
+      const timing = typeof remaining === "number" ? `${remaining}min left` : "active";
+      summary += ` Wrap-Up guidance is ${timing} (${schedule.wrapUpGuidance.selectedMode}).`;
+    }
+
     return { systemMessage: summary };
   } catch (error) {
     return null;

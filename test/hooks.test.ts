@@ -20,13 +20,17 @@ describe("Hooks", () => {
       vi.mocked(HeadsDownClient.fromCredentials).mockResolvedValue({
         getAvailability: vi.fn().mockResolvedValue({
           contract: { mode: "busy", statusText: "Deep work" },
-          schedule: { inReachableHours: true }
+          schedule: {
+            inReachableHours: true,
+            wrapUpGuidance: { active: true, remainingMinutes: 12, selectedMode: "wrap_up" }
+          }
         })
       } as any);
 
       const result = await handleSessionStart();
       expect(result?.systemMessage).toContain("busy");
       expect(result?.systemMessage).toContain("Deep work");
+      expect(result?.systemMessage).toContain("Wrap-Up guidance");
     });
 
     it("returns null when no contract exists", async () => {

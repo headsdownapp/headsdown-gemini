@@ -34,7 +34,12 @@ export function createServer(): Server {
             estimated_files: { type: "number", description: "Estimated number of files to modify." },
             estimated_minutes: { type: "number", description: "Estimated time in minutes." },
             scope_summary: { type: "string", description: "Brief scope summary (e.g., 'Refactor auth hooks')." },
-            source_ref: { type: "string", description: "Reference (e.g., ticket ID, PR URL)." }
+            source_ref: { type: "string", description: "Reference (e.g., ticket ID, PR URL)." },
+            delivery_mode: {
+              type: "string",
+              enum: ["auto", "wrap_up", "full_depth"],
+              description: "Optional Wrap-Up delivery mode override for this proposal."
+            }
           },
           required: ["description"]
         }
@@ -76,7 +81,22 @@ export function createServer(): Server {
       switch (name) {
         case "headsdown_status": {
           const { contract, schedule } = await client!.getAvailability();
-          return { content: [{ type: "text", text: JSON.stringify({ contract, schedule }, null, 2) }] };
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(
+                  {
+                    contract,
+                    schedule,
+                    summary: summarizeAvailability(contract, schedule)
+                  },
+                  null,
+                  2
+                )
+              }
+            ]
+          };
         }
         case "headsdown_propose": {
           const input = {
@@ -86,7 +106,8 @@ export function createServer(): Server {
             estimatedFiles: args?.estimated_files as number,
             estimatedMinutes: args?.estimated_minutes as number,
             scopeSummary: args?.scope_summary as string,
-            sourceRef: args?.source_ref as string
+            sourceRef: args?.source_ref as string,
+            deliveryMode: parseDeliveryMode(args?.delivery_mode)
           };
           const verdict = await client!.submitProposal(input);
           if (verdict.decision === "approved") {
@@ -124,6 +145,44 @@ export function createServer(): Server {
   });
 
   return server;
+}
+
+function parseDeliveryMode(value: unknown): "auto" | "wrap_up" | "full_depth" | undefined {
+  if (value === "auto" || value === "wrap_up" || value === "full_depth") {
+    return value;
+  }
+
+  return undefined;
+}
+
+function summarizeAvailability(
+  contract: { mode: string; statusText?: string | null; lock?: boolean | null } | null,
+  schedule: {
+    inReachableHours?: boolean;
+    wrapUpGuidance?: { active?: boolean; remainingMinutes?: number | null; selectedMode?: string };
+  } | null,
+): string {
+  if (!contract) {
+    return "No active availability contract.";
+  }
+
+  const parts = [`Mode: ${contract.mode}`];
+  if (contract.statusText) {
+    parts.push(`Status: ${contract.statusText}`);
+  }
+  if (contract.lock) {
+    parts.push("Status is locked");
+  }
+  if (schedule?.inReachableHours === false) {
+    parts.push("Outside reachable hours");
+  }
+  if (schedule?.wrapUpGuidance?.active) {
+    const remaining = schedule.wrapUpGuidance.remainingMinutes;
+    const timing = typeof remaining === "number" ? `${remaining}m remaining` : "active";
+    parts.push(`Wrap-Up: ${timing} (${schedule.wrapUpGuidance.selectedMode ?? "auto"})`);
+  }
+
+  return parts.join(" · ");
 }
 
 async function getClient() {
