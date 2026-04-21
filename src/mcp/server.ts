@@ -81,6 +81,7 @@ export function createServer(): Server {
       switch (name) {
         case "headsdown_status": {
           const { contract, schedule } = await client!.getAvailability();
+          const wrapUpInstruction = buildWrapUpInstruction(schedule?.wrapUpGuidance);
           return {
             content: [
               {
@@ -89,7 +90,8 @@ export function createServer(): Server {
                   {
                     contract,
                     schedule,
-                    summary: summarizeAvailability(contract, schedule)
+                    summary: summarizeAvailability(contract, schedule),
+                    wrapUpInstruction
                   },
                   null,
                   2
@@ -118,7 +120,15 @@ export function createServer(): Server {
               evaluatedAt: verdict.evaluatedAt
             });
           }
-          return { content: [{ type: "text", text: JSON.stringify(verdict, null, 2) }] };
+          const wrapUpInstruction = buildWrapUpInstruction(verdict.wrapUpGuidance);
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify({ ...verdict, wrapUpInstruction }, null, 2)
+              }
+            ]
+          };
         }
         case "headsdown_outcome": {
           const outcome = await client!.reportOutcome({
@@ -176,13 +186,57 @@ function summarizeAvailability(
   if (schedule?.inReachableHours === false) {
     parts.push("Outside reachable hours");
   }
-  if (schedule?.wrapUpGuidance?.active) {
-    const remaining = schedule.wrapUpGuidance.remainingMinutes;
-    const timing = typeof remaining === "number" ? `${remaining}m remaining` : "active";
-    parts.push(`Wrap-Up: ${timing} (${schedule.wrapUpGuidance.selectedMode ?? "auto"})`);
+  const wrapUpInstruction = buildWrapUpInstruction(schedule?.wrapUpGuidance);
+  if (wrapUpInstruction) {
+    parts.push(`Wrap-Up instruction: ${wrapUpInstruction}`);
   }
 
   return parts.join(" · ");
+}
+
+function buildWrapUpInstruction(
+  guidance:
+    | {
+        active?: boolean;
+        selectedMode?: string;
+        remainingMinutes?: number | null;
+        reason?: string;
+        hints?: string[];
+      }
+    | null
+    | undefined,
+): string | null {
+  if (!guidance || !guidance.active) {
+    return null;
+  }
+
+  let instruction = "";
+  if (guidance.selectedMode === "wrap_up") {
+    instruction =
+      "Execution policy for this task: keep scope minimal, avoid starting new refactors, finish the current slice cleanly, and include clear handoff notes for deferred work.";
+  } else if (guidance.selectedMode === "full_depth") {
+    instruction =
+      "Execution policy for this task: proceed with full implementation depth, include robust validation and tests, and do not shrink scope only because a deadline is near.";
+  } else {
+    instruction =
+      "Execution policy for this task: follow the provided context to balance scope and depth, stay focused on the requested outcome, and avoid unnecessary expansion.";
+  }
+
+  const context: string[] = [];
+
+  if (typeof guidance.remainingMinutes === "number") {
+    context.push(`About ${guidance.remainingMinutes} minutes remain before the attention deadline.`);
+  }
+
+  if (guidance.reason) {
+    context.push(`Reason: ${guidance.reason}`);
+  }
+
+  if (guidance.hints && guidance.hints.length > 0) {
+    context.push(`Hints: ${guidance.hints.join("; ")}`);
+  }
+
+  return [instruction, ...context].join(" ");
 }
 
 async function getClient() {

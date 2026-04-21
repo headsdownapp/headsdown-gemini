@@ -37,6 +37,8 @@ describe("HeadsDown MCP Server", () => {
     expect(source).toContain("deliveryMode: parseDeliveryMode");
     expect(source).toContain("wrapUpGuidance");
     expect(source).toContain("summary: summarizeAvailability");
+    expect(source).toContain("wrapUpInstruction");
+    expect(source).toContain("Execution policy for this task");
   });
 
   it("headsdown_outcome has expected required fields", async () => {
