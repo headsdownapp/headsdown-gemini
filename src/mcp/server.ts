@@ -4,17 +4,18 @@ import * as HeadsDownSDK from "@headsdown/sdk";
 import {
   HeadsDownClient,
   ProposalStateStore,
-  AuthError,
-  ValidationError,
-  NetworkError,
-  ApiError
 } from "@headsdown/sdk";
+import * as path from "path";
 
 const proposalState = new ProposalStateStore();
 
+// The extension directory is passed via EXTENSION_ROOT or can be inferred
+const EXTENSION_ROOT = process.env.EXTENSION_ROOT || process.cwd();
+const CONFIG_PATH = path.join(EXTENSION_ROOT, ".headsdown.json");
+
 export function createServer(): Server {
   const server = new Server(
-    { name: "headsdown", version: "0.1.0" },
+    { name: "headsdown", version: "0.3.0" },
     { capabilities: { tools: {} } }
   );
 
@@ -73,7 +74,12 @@ export function createServer(): Server {
 
     if (!client && name !== "headsdown_auth") {
       return {
-        content: [{ type: "text", text: "Not authenticated. Run headsdown_auth tool." }],
+        content: [
+          { 
+            type: "text", 
+            text: "Not authenticated. Please run the 'headsdown_auth' tool to link your account." 
+          }
+        ],
         isError: true
       };
     }
@@ -165,9 +171,21 @@ export function createServer(): Server {
         case "headsdown_auth": {
           const authClient = await HeadsDownClient.authenticate((auth) => {
             console.error(`Visit ${auth.verificationUriComplete} to authenticate.`);
-          }, { label: "Gemini CLI Extension" });
+          }, { 
+            label: "Gemini CLI Extension",
+            credentialsPath: CONFIG_PATH
+          });
+          
           const profile = await authClient.getProfile();
-          return { content: [{ type: "text", text: `Authenticated as ${profile.email}` }] };
+
+          return { 
+            content: [
+              { 
+                type: "text", 
+                text: `Successfully authenticated as ${profile.email}. Your token has been saved to ${CONFIG_PATH}.` 
+              }
+            ] 
+          };
         }
         default:
           throw new Error(`Unknown tool: ${name}`);
@@ -293,5 +311,15 @@ function resolveExecutionInstruction(input: {
 }
 
 async function getClient() {
-  try { return await HeadsDownClient.fromCredentials(); } catch { return null; }
+  try {
+    // 1. Try environment variable (Gemini Settings / API Key env)
+    if (process.env.HEADSDOWN_TOKEN || process.env.HEADSDOWN_API_KEY) {
+      return await HeadsDownClient.fromCredentials();
+    }
+
+    // 2. Try local extension config file
+    return await HeadsDownClient.fromCredentials({ credentialsPath: CONFIG_PATH });
+  } catch {
+    return null;
+  }
 }
