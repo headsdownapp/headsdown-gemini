@@ -9,9 +9,12 @@ This skill connects you to [HeadsDown](https://headsdown.app) so you're aware of
 
 ## When to Use
 
+- **High-level management**: For complex availability management or detailed status checks, consider delegating to the `@headsdown` specialist subagent.
 - **Before starting any non-trivial work:** Check `headsdown_status` to see the user's current mode.
 - **If the user is Busy/Limited:** Submit a proposal using `headsdown_propose` to get a verdict (Approved/Deferred).
-- **If the verdict is Deferred:** Inform the user why and suggest postponing or reducing scope.
+- **Interactive Conflict Resolution:** If a verdict is **Deferred**, use the `ask_user` tool to present the user with a choice. Example choices:
+    - **Header: "Focus Conflict"**, Options: `[{"label": "Override", "description": "Proceed anyway"}, {"label": "Reduce Scope", "description": "Switch to Wrap-Up mode"}, {"label": "Defer", "description": "Stop and try later"}]`
+- **If the user selects "Reduce Scope":** Follow the `wrapUpInstruction` strictly.
 - **When availability is mentioned:** "I'm heading into deep work", "Are you free?", etc.
 
 ## MCP Tools
@@ -21,6 +24,12 @@ This skill connects you to [HeadsDown](https://headsdown.app) so you're aware of
 - **`headsdown_outcome`**: Report task outcome (success/failure/cancelled) with actual `files_modified` and `minutes_spent`.
 - **`headsdown_auth`**: Authenticate via Device Flow if you get a 401/Auth error.
 
-## Gating Policy
+## Advanced Features
 
-The extension includes a `BeforeTool` hook that gates modifications (like writing files) when you are in a focus mode. If a tool call is denied, it means you must submit a proposal via `headsdown_propose` first. Once a proposal is approved, the hook allows subsequent modifications for that session. Finally, use `headsdown_outcome` to close the loop when the task is complete.
+### Subagent: `@headsdown`
+The extension includes a specialist subagent for dedicated focus-time management. Delegate to it for detailed planning around availability.
+
+### Hooks
+- **`SessionStart`**: Injects initial availability context.
+- **`BeforeAgent`**: Provides real-time warnings before each planning phase if the user is busy or a deadline is near.
+- **`BeforeTool`**: Gates modifications (like writing files) when you are in a focus mode. If a tool call is denied, you must submit a proposal via `headsdown_propose` first. 

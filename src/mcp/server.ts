@@ -128,11 +128,27 @@ export function createServer(): Server {
               wrapUpGuidance: verdict.wrapUpGuidance
             }
           });
+
+          // Suggest an interactive resolution if deferred
+          let suggested_interaction = undefined;
+          if (verdict.decision === "deferred") {
+            suggested_interaction = {
+              type: "ask_user",
+              header: "Focus Conflict",
+              question: `Your task was deferred: ${verdict.reason}. How would you like to proceed?`,
+              options: [
+                { label: "Override", description: "Ignore focus mode and proceed with full scope." },
+                { label: "Wrap-Up", description: "Proceed with a minimal, reduced scope." },
+                { label: "Defer", description: "Stop and wait until you are available." }
+              ]
+            };
+          }
+
           return {
             content: [
               {
                 type: "text",
-                text: JSON.stringify({ ...verdict, wrapUpInstruction }, null, 2)
+                text: JSON.stringify({ ...verdict, wrapUpInstruction, suggested_interaction }, null, 2)
               }
             ]
           };

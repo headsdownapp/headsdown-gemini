@@ -1,25 +1,39 @@
 {
   "name": "headsdown",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Availability awareness and task gating for Gemini CLI.",
+  "settings": [
+    {
+      "name": "HEADSDOWN_TOKEN",
+      "description": "API Token for HeadsDown (managed via headsdown_auth)",
+      "type": "string"
+    }
+  ],
   "skills": [
     "./skills/headsdown"
+  ],
+  "agents": [
+    "./agents/headsdown.md"
   ],
   "hooks": [
     {
       "event": "SessionStart",
-      "command": "node ${EXTENSION_ROOT}/dist/hooks/session-start.js"
+      "command": "node ${extensionPath}/dist/hooks/session-start.js"
+    },
+    {
+      "event": "BeforeAgent",
+      "command": "node ${extensionPath}/dist/hooks/before-agent.js"
     },
     {
       "event": "BeforeTool",
-      "command": "node ${EXTENSION_ROOT}/dist/hooks/check-availability.js"
+      "command": "node ${extensionPath}/dist/hooks/check-availability.js"
     }
   ],
   "mcpServers": {
     "headsdown": {
       "command": "node",
       "args": [
-        "${EXTENSION_ROOT}/dist/index.js"
+        "${extensionPath}/dist/index.js"
       ]
     }
   }
