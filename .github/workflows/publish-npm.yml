@@ -34,7 +34,7 @@ jobs:
         run: npm test
 
       - name: Update Changelog
-        uses: Triply-Dev/conventional-changelog-action@v6
+        uses: TriPSs/conventional-changelog-action@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           git-branch: 'main'
