@@ -1,16 +1,18 @@
 # headsdown-gemini
 
-HeadsDown availability awareness and task gating for Gemini CLI.
+HeadsDown availability awareness and task gating for Gemini CLI. This extension makes Gemini "availability-aware," allowing it to respect your focus time, submit task proposals, and negotiate scope when you are busy.
 
-## What it does
+## Features
 
-- Loads a Gemini CLI extension manifest from `gemini-extension.json`
-- Starts an MCP server that exposes `headsdown_status`, `headsdown_propose`, `headsdown_outcome`, and `headsdown_auth`
-- Runs a `SessionStart` hook that can surface the user's current HeadsDown availability
-- Runs a `BeforeTool` hook that can gate write-like tools when the user is busy, limited, or offline
-- Ships a `skills/headsdown/SKILL.md` file so Gemini can check availability before starting non-trivial work
+- **Specialist Subagent (`@headsdown`)**: A dedicated expert agent for managing your availability, focus time, and task proposals.
+- **Interactive Conflict Resolution**: Uses Gemini CLI's native `ask_user` UI to negotiate scope (Override, Wrap-Up, or Defer) when focus conflicts arise.
+- **Real-time Gating**:
+  - `BeforeAgent` Hook: Warns the agent if you are busy or a "Wrap-Up" deadline is near before it even starts planning.
+  - `BeforeTool` Hook: Prevents destructive actions (file writes, shell commands) unless a proposal has been approved.
+- **Secure Storage**: Leverages Gemini CLI's `settings` to securely store your `HEADSDOWN_TOKEN` in the system keychain.
+- **MCP Server**: Provides low-level tools for status, proposals, outcomes, and authentication.
 
-## Install
+## Installation
 
 ```bash
 git clone https://github.com/headsdownapp/headsdown-gemini.git
@@ -19,26 +21,38 @@ npm install
 npm run build
 ```
 
-The package depends on `@headsdown/sdk` available on npm.
+Then, link the extension to your Gemini CLI:
+```bash
+gemini extension install .
+```
+
+## Requirements
+
+- **Node.js**: `>=22.14.0` (Standardized for modern agentic workflows)
+- **Gemini CLI**: `v0.39.1` or higher
 
 ## Development
 
 ```bash
-npm run build
-npm test
-npm run dev
+npm run build   # Compile TypeScript
+npm test        # Run Vitest suite
+npm run dev     # Watch mode
 ```
 
 ## Publishing
 
-This package is set up for npm Trusted Publishing from GitHub Actions. Create a GitHub release for the version you want to ship, then enable this repository as a trusted publisher in npm and the `Publish to npm` workflow will publish the release commit with provenance.
+This package uses **npm Trusted Publishing** with SLSA provenance.
+1. Update version in `package.json`.
+2. Push a tag (e.g., `git tag v0.2.0 && git push origin v0.2.0`).
+3. GitHub Actions will verify the version, publish to npm, and create a GitHub Release automatically.
 
-## Repository contents
+## Repository Structure
 
-- `gemini-extension.json` - Gemini CLI extension manifest
-- `src/` - MCP server and hook handlers
-- `skills/` - Gemini skill content
-- `test/` - Vitest coverage for hooks and MCP tools
+- `agents/` - The `@headsdown` specialist subagent definition.
+- `src/hooks/` - Hook handlers (`SessionStart`, `BeforeAgent`, `BeforeTool`).
+- `src/mcp/` - MCP server implementation with interactive `ask_user` hints.
+- `skills/` - Gemini skill content for broad availability awareness.
+- `test/` - Comprehensive test suite for hooks and MCP logic.
 
 ## License
 
