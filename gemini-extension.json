@@ -1,6 +1,6 @@
 {
   "name": "headsdown",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Availability awareness and task gating for Gemini CLI.",
   "settings": [
     {
@@ -14,6 +14,9 @@
   ],
   "agents": [
     "./agents/headsdown.md"
+  ],
+  "commands": [
+    "./commands"
   ],
   "hooks": [
     {
@@ -36,5 +39,27 @@
         "${extensionPath}/dist/index.js"
       ]
     }
-  }
+  },
+  "themes": [
+    {
+      "name": "HeadsDown Focus",
+      "type": "custom",
+      "colors": {
+        "background.primary": "#1a0f0f",
+        "border.accent": "#ff4d4d",
+        "text.accent": "#ff6666",
+        "text.primary": "#ffffff"
+      }
+    },
+    {
+      "name": "HeadsDown Flow",
+      "type": "custom",
+      "colors": {
+        "background.primary": "#0f1a1a",
+        "border.accent": "#4dffb8",
+        "text.accent": "#66ffcc",
+        "text.primary": "#ffffff"
+      }
+    }
+  ]
 }

@@ -1,0 +1,20 @@
+[[rule]]
+name = "headsdown-busy-protection"
+description = "Protect user focus by requiring approval for destructive tools when busy."
+modes = ["autoEdit", "yolo"]
+tools = ["replace", "write_file", "run_shell_command"]
+
+[rule.condition]
+# This is a Tier 2 policy. We use it to ensure the agent is aware 
+# of focus state for high-impact tools.
+interactive = true
+
+[[rule]]
+name = "headsdown-offline-gating"
+description = "Strict gating of all modifications when user is offline."
+modes = ["plan", "autoEdit", "yolo"]
+tools = ["*"]
+
+[rule.condition]
+# Ensure subagent-based modifications also respect this
+subagent = "headsdown"

@@ -1,0 +1,2 @@
+prompt = "@headsdown Set me to focus mode for {{args}}. If no duration is provided, assume 60 minutes."
+description = "Set HeadsDown focus mode"

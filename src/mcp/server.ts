@@ -1,5 +1,10 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { 
+  CallToolRequestSchema, 
+  ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema
+} from "@modelcontextprotocol/sdk/types.js";
 import * as HeadsDownSDK from "@headsdown/sdk";
 import {
   HeadsDownClient,
@@ -15,9 +20,60 @@ const CONFIG_PATH = path.join(EXTENSION_ROOT, ".headsdown.json");
 
 export function createServer(): Server {
   const server = new Server(
-    { name: "headsdown", version: "0.3.0" },
-    { capabilities: { tools: {} } }
+    { name: "headsdown", version: "0.3.2" },
+    { capabilities: { tools: {}, resources: {} } }
   );
+
+  server.setRequestHandler(ListResourcesRequestSchema, async () => ({
+    resources: [
+      {
+        uri: "headsdown://status",
+        name: "Current Availability Status",
+        description: "The user's current HeadsDown mode, lock status, and status text.",
+        mimeType: "application/json"
+      },
+      {
+        uri: "headsdown://schedule",
+        name: "Today's Schedule",
+        description: "Upcoming reachable hours and focus windows for today.",
+        mimeType: "application/json"
+      }
+    ]
+  }));
+
+  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    const { uri } = request.params;
+    const client = await getClient();
+
+    if (!client) {
+      throw new Error("Not authenticated. Run headsdown_auth tool.");
+    }
+
+    try {
+      const { contract, schedule } = await client.getAvailability();
+      
+      if (uri === "headsdown://status") {
+        return {
+          contents: [{
+            uri,
+            mimeType: "application/json",
+            text: JSON.stringify(contract, null, 2)
+          }]
+        };
+      } else if (uri === "headsdown://schedule") {
+        return {
+          contents: [{
+            uri,
+            mimeType: "application/json",
+            text: JSON.stringify(schedule, null, 2)
+          }]
+        };
+      }
+      throw new Error(`Unknown resource: ${uri}`);
+    } catch (error: any) {
+      throw new Error(`Failed to read resource: ${error.message}`);
+    }
+  });
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
