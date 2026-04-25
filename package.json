@@ -1,5 +1,5 @@
 {
-  "name": "headsdown-gemini",
+  "name": "@headsdown/gemini",
   "version": "0.3.0",
   "description": "HeadsDown availability extension for Gemini CLI.",
   "type": "module",
