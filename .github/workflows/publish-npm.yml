@@ -35,21 +35,6 @@ jobs:
       - name: Test
         run: npm test
 
-      - name: Checkout main branch
-        run: git checkout main
-
-      - name: Update Changelog
-        uses: TriPSs/conventional-changelog-action@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          git-branch: 'main'
-          git-user-name: "github-actions[bot]"
-          git-user-email: "github-actions[bot]@users.noreply.github.com"
-          output-file: 'CHANGELOG.md'
-          skip-on-empty: 'false'
-          skip-tag: 'true'
-          skip-bump: 'true'
-
       - name: Verify tag matches package version
         run: |
           VERSION=$(node -p "require('./package.json').version")
