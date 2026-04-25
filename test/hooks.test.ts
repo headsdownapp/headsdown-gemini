@@ -10,7 +10,8 @@ vi.mock("@headsdown/sdk", async () => {
     HeadsDownClient: {
       fromCredentials: vi.fn()
     },
-    ProposalStateStore: vi.fn()
+    ProposalStateStore: vi.fn(),
+    describeExecutionDirective: undefined
   };
 });
 
