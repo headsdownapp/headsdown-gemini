@@ -33,6 +33,18 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Update Changelog
+        uses: Triply-Dev/conventional-changelog-action@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          git-branch: 'main'
+          skip-git-pull: 'true'
+          output-file: 'CHANGELOG.md'
+          skip-on-empty: 'false'
+          # We don't want the action to tag, since we trigger ON the tag
+          skip-tag: 'true'
+          skip-version-update: 'true'
+
       - name: Verify tag matches package version
         run: |
           VERSION=$(node -p "require('./package.json').version")
