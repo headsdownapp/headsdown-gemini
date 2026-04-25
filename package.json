@@ -1,6 +1,6 @@
 {
   "name": "@headsdown/gemini",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "HeadsDown availability extension for Gemini CLI.",
   "type": "module",
   "license": "MIT",
