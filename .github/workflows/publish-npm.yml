@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -32,6 +34,18 @@ jobs:
 
       - name: Test
         run: npm test
+
+      - name: Update Changelog
+        uses: TriPSs/conventional-changelog-action@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          git-branch: 'main'
+          git-user-name: "github-actions[bot]"
+          git-user-email: "github-actions[bot]@users.noreply.github.com"
+          output-file: 'CHANGELOG.md'
+          skip-on-empty: 'false'
+          skip-tag: 'true'
+          skip-bump: 'true'
 
       - name: Verify tag matches package version
         run: |
