@@ -47,10 +47,12 @@ gemini settings set HEADSDOWN_TOKEN <your-token>
 ## Development
 
 ```bash
-npm run build   # Compile TypeScript
+npm run build   # Bundle runtime entrypoints to dist/
 npm test        # Run Vitest suite
 npm run dev     # Watch mode
 ```
+
+Published artifacts bundle the HeadsDown SDK into `dist/index.js` and `dist/hooks/*.js` while keeping `@modelcontextprotocol/sdk` as an external runtime dependency. Source TypeScript remains in-repo for development.
 
 ## Publishing
 
