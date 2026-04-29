@@ -58,6 +58,10 @@ npm run dev     # Watch mode
 2. Push a tag (e.g., `git tag v0.4.0 && git push origin --tags`).
 3. GitHub Actions will automatically update `CHANGELOG.md`, publish to npm, and create a GitHub Release.
 
+## Dependency update automation
+
+This repo uses Renovate to keep `@headsdown/sdk` and other routine dependencies current. New SDK releases open bot PRs automatically, and eligible updates can automerge after required CI checks pass. In normal maintenance flow, do not manually edit `@headsdown/sdk` versions unless you are intentionally overriding Renovate behavior.
+
 ## License
 
 MIT
