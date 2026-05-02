@@ -1,2 +1,8 @@
-prompt = "@headsdown Set my status to Available and Online."
 description = "Set HeadsDown status to Available"
+prompt = """
+# HeadsDown Available
+
+Set the user's status to Available and Online.
+
+Use the `mcp_headsdown_headsdown_propose` tool or appropriate status management tool to clear focus mode.
+"""

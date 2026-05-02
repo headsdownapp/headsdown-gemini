@@ -1,4 +1,5 @@
 import { HeadsDownClient, ProposalStateStore } from "@headsdown/sdk";
+import { getConfigPath } from "../config.js";
 
 export interface HookInput {
   tool_name: string;
@@ -17,7 +18,7 @@ export async function handleBeforeTool(input: HookInput) {
   }
 
   try {
-    const client = await HeadsDownClient.fromCredentials();
+    const client = await HeadsDownClient.fromCredentials({ credentialsPath: getConfigPath() });
     const { contract } = await client.getAvailability();
 
     if (!contract || contract.mode === "online") {
@@ -59,8 +60,13 @@ export async function handleBeforeTool(input: HookInput) {
   }
 }
 
+import { fileURLToPath } from "url";
+import * as path from "path";
+
 // Only run if this is the main module
-if (import.meta.url === `file://${process.argv[1]}`) {
+const __filename = fileURLToPath(import.meta.url);
+const entryPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
+if (entryPath === __filename) {
   const chunks: any[] = [];
   process.stdin.on("data", chunk => chunks.push(chunk));
   process.stdin.on("end", () => {

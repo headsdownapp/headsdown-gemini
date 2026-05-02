@@ -3,7 +3,7 @@ name: headsdown
 description: Specialist for managing user availability, focus time, and submitting task proposals. Use this agent when the user wants to check their status, submit a proposal for a task, or handle "HeadsDown" availability logic.
 kind: local
 tools:
-  - mcp_server_headsdown_*
+  - mcp_headsdown_*
 ---
 
 # HeadsDown Specialist

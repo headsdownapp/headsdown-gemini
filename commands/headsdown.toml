@@ -1,0 +1,15 @@
+description = "Check your HeadsDown availability status, or authenticate if not connected"
+prompt = """
+# HeadsDown Management
+
+Current HeadsDown availability: {{mcp_headsdown_headsdown_status}}
+
+## Instructions
+
+Based on the user's argument ({{args}}):
+
+- **No argument or "status":** Display the current availability status. Show mode, status, time remaining, and availability state. If not authenticated, explain how to run `/headsdown auth`.
+- **"auth":** Run the HeadsDown authentication flow using the `mcp_headsdown_headsdown_auth` tool. Guide the user through the Device Flow: show them the URL and code, and wait for them to confirm success.
+
+User argument: {{args}}
+"""

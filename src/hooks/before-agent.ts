@@ -1,4 +1,5 @@
 import { HeadsDownClient } from "@headsdown/sdk";
+import { getConfigPath } from "../config.js";
 
 /**
  * HeadsDown BeforeAgent hook for Gemini CLI.
@@ -6,7 +7,7 @@ import { HeadsDownClient } from "@headsdown/sdk";
  */
 export async function handleBeforeAgent() {
   try {
-    const client = await HeadsDownClient.fromCredentials();
+    const client = await HeadsDownClient.fromCredentials({ credentialsPath: getConfigPath() });
     const { contract, schedule } = await client.getAvailability();
 
     if (!contract) return { decision: "allow" };
@@ -47,7 +48,13 @@ This section must detail:
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+import { fileURLToPath } from "url";
+import * as path from "path";
+
+// Only run if this is the main module
+const __filename = fileURLToPath(import.meta.url);
+const entryPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
+if (entryPath === __filename) {
   handleBeforeAgent().then((result) => {
     console.log(JSON.stringify(result));
   });

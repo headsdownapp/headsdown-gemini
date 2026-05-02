@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { handleSessionStart } from "../src/hooks/session-start.js";
 import { handleBeforeTool } from "../src/hooks/check-availability.js";
-import { HeadsDownClient, ProposalStateStore } from "@headsdown/sdk";
+import { HeadsDownClient, ProposalStateStore, describeExecutionDirective } from "@headsdown/sdk";
 
 vi.mock("@headsdown/sdk", async () => {
   const actual = await vi.importActual("@headsdown/sdk");
@@ -11,7 +11,7 @@ vi.mock("@headsdown/sdk", async () => {
       fromCredentials: vi.fn()
     },
     ProposalStateStore: vi.fn(),
-    describeExecutionDirective: undefined
+    describeExecutionDirective: vi.fn()
   };
 });
 
@@ -28,10 +28,13 @@ describe("Hooks", () => {
         })
       } as any);
 
+      vi.mocked(describeExecutionDirective).mockReturnValue({
+        primaryDirective: "Execution policy for this task: keep scope minimal."
+      } as any);
+
       const result = await handleSessionStart();
       expect(result?.systemMessage).toContain("busy");
       expect(result?.systemMessage).toContain("Deep work");
-      expect(result?.systemMessage).toContain("Wrap-Up instruction");
       expect(result?.systemMessage).toContain("Execution policy for this task");
     });
 

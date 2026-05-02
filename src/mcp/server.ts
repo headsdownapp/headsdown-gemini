@@ -9,14 +9,11 @@ import * as HeadsDownSDK from "@headsdown/sdk";
 import {
   HeadsDownClient,
   ProposalStateStore,
+  describeExecutionDirective,
 } from "@headsdown/sdk";
-import * as path from "path";
+import { getConfigPath } from "../config.js";
 
-const proposalState = new ProposalStateStore();
-
-// The extension directory is passed via EXTENSION_ROOT or can be inferred
-const EXTENSION_ROOT = process.env.EXTENSION_ROOT || process.cwd();
-const CONFIG_PATH = path.join(EXTENSION_ROOT, ".headsdown.json");
+const CONFIG_PATH = getConfigPath();
 
 export function createServer(): Server {
   const server = new Server(
@@ -144,7 +141,7 @@ export function createServer(): Server {
       switch (name) {
         case "headsdown_status": {
           const { contract, schedule } = await client!.getAvailability();
-          const wrapUpInstruction = resolveExecutionInstruction({ contract, schedule });
+          const directive = describeExecutionDirective({ contract, schedule });
           return {
             content: [
               {
@@ -154,7 +151,7 @@ export function createServer(): Server {
                     contract,
                     schedule,
                     summary: summarizeAvailability(contract, schedule),
-                    wrapUpInstruction
+                    wrapUpInstruction: directive.primaryDirective
                   },
                   null,
                   2
@@ -183,7 +180,7 @@ export function createServer(): Server {
               evaluatedAt: verdict.evaluatedAt
             });
           }
-          const wrapUpInstruction = resolveExecutionInstruction({
+          const directive = describeExecutionDirective({
             verdict: {
               decision: verdict.decision,
               reason: verdict.reason,
@@ -210,7 +207,11 @@ export function createServer(): Server {
             content: [
               {
                 type: "text",
-                text: JSON.stringify({ ...verdict, wrapUpInstruction, suggested_interaction }, null, 2)
+                text: JSON.stringify({ 
+                  ...verdict, 
+                  wrapUpInstruction: directive.primaryDirective, 
+                  suggested_interaction 
+                }, null, 2)
               }
             ]
           };
@@ -283,87 +284,12 @@ function summarizeAvailability(
   if (schedule?.inReachableHours === false) {
     parts.push("Outside reachable hours");
   }
-  const wrapUpInstruction = resolveExecutionInstruction({ contract, schedule });
-  if (wrapUpInstruction) {
-    parts.push(`Wrap-Up instruction: ${wrapUpInstruction}`);
+  const directive = describeExecutionDirective({ contract, schedule });
+  if (directive.primaryDirective) {
+    parts.push(`Wrap-Up instruction: ${directive.primaryDirective}`);
   }
 
   return parts.join(" · ");
-}
-
-function resolveExecutionInstruction(input: {
-  contract?: unknown;
-  schedule?: unknown;
-  verdict?: {
-    decision?: "approved" | "deferred";
-    reason?: string;
-    wrapUpGuidance?: {
-      active?: boolean;
-      selectedMode?: string;
-      remainingMinutes?: number | null;
-      reason?: string;
-      hints?: string[];
-    } | null;
-  } | null;
-}): string | null {
-  const describeExecutionDirective = (
-    HeadsDownSDK as unknown as {
-      describeExecutionDirective?: (value: {
-        contract?: unknown;
-        schedule?: unknown;
-        verdict?: unknown;
-      }) => { primaryDirective?: string };
-    }
-  ).describeExecutionDirective;
-
-  if (typeof describeExecutionDirective === "function") {
-    const directive = describeExecutionDirective(input);
-    return directive.primaryDirective ?? null;
-  }
-
-  const guidance =
-    input.verdict?.wrapUpGuidance ??
-    ((input.schedule as { wrapUpGuidance?: unknown } | undefined)?.wrapUpGuidance as
-      | {
-          active?: boolean;
-          selectedMode?: string;
-          remainingMinutes?: number | null;
-          reason?: string;
-          hints?: string[];
-        }
-      | undefined);
-
-  if (!guidance || !guidance.active) {
-    return null;
-  }
-
-  let instruction = "";
-  if (guidance.selectedMode === "wrap_up") {
-    instruction =
-      "Execution policy for this task: keep scope minimal, avoid starting new refactors, finish the current slice cleanly, and include clear handoff notes for deferred work.";
-  } else if (guidance.selectedMode === "full_depth") {
-    instruction =
-      "Execution policy for this task: proceed with full implementation depth, include robust validation and tests, and do not shrink scope only because a deadline is near.";
-  } else {
-    instruction =
-      "Execution policy for this task: follow the provided context to balance scope and depth, stay focused on the requested outcome, and avoid unnecessary expansion.";
-  }
-
-  const context: string[] = [];
-
-  if (typeof guidance.remainingMinutes === "number") {
-    context.push(`About ${guidance.remainingMinutes} minutes remain before the attention deadline.`);
-  }
-
-  if (guidance.reason) {
-    context.push(`Reason: ${guidance.reason}`);
-  }
-
-  if (guidance.hints && guidance.hints.length > 0) {
-    context.push(`Hints: ${guidance.hints.join("; ")}`);
-  }
-
-  return [instruction, ...context].join(" ");
 }
 
 async function getClient() {

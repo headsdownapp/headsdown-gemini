@@ -1,12 +1,12 @@
-import * as HeadsDownSDK from "@headsdown/sdk";
-import { HeadsDownClient } from "@headsdown/sdk";
+import { HeadsDownClient, describeExecutionDirective } from "@headsdown/sdk";
+import { getConfigPath } from "../config.js";
 
 /**
  * HeadsDown SessionStart hook for Gemini CLI.
  */
 export async function handleSessionStart() {
   try {
-    const client = await HeadsDownClient.fromCredentials();
+    const client = await HeadsDownClient.fromCredentials({ credentialsPath: getConfigPath() });
     const { contract, schedule } = await client.getAvailability();
 
     if (!contract) return null;
@@ -29,9 +29,9 @@ export async function handleSessionStart() {
       summary += "Reachable hours active.";
     }
 
-    const wrapUpInstruction = resolveExecutionInstruction({ contract, schedule });
-    if (wrapUpInstruction) {
-      summary += ` ${wrapUpInstruction}`;
+    const directive = describeExecutionDirective({ contract, schedule });
+    if (directive.primaryDirective) {
+      summary += ` ${directive.primaryDirective}`;
     }
 
     return { systemMessage: summary };
@@ -40,67 +40,14 @@ export async function handleSessionStart() {
   }
 }
 
+import { fileURLToPath } from "url";
+import * as path from "path";
+
 // Only run if this is the main module
-if (import.meta.url === `file://${process.argv[1]}`) {
+const __filename = fileURLToPath(import.meta.url);
+const entryPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
+if (entryPath === __filename) {
   handleSessionStart().then((result) => {
     if (result) console.log(JSON.stringify(result));
   });
-}
-
-function resolveExecutionInstruction(input: { contract?: unknown; schedule?: unknown }): string | null {
-  const describeExecutionDirective = (
-    HeadsDownSDK as unknown as {
-      describeExecutionDirective?: (value: {
-        contract?: unknown;
-        schedule?: unknown;
-      }) => { primaryDirective?: string };
-    }
-  ).describeExecutionDirective;
-
-  if (typeof describeExecutionDirective === "function") {
-    const directive = describeExecutionDirective(input);
-    return directive.primaryDirective ?? null;
-  }
-
-  const guidance = (input.schedule as { wrapUpGuidance?: unknown } | undefined)?.wrapUpGuidance as
-    | {
-        active?: boolean;
-        selectedMode?: "auto" | "wrap_up" | "full_depth";
-        remainingMinutes?: number | null;
-        reason?: string;
-        hints?: string[];
-      }
-    | undefined;
-
-  if (!guidance || !guidance.active) {
-    return null;
-  }
-
-  let instruction = "";
-  if (guidance.selectedMode === "wrap_up") {
-    instruction =
-      "Execution policy for this task: keep scope minimal, avoid starting new refactors, finish the current slice cleanly, and include clear handoff notes for deferred work.";
-  } else if (guidance.selectedMode === "full_depth") {
-    instruction =
-      "Execution policy for this task: proceed with full implementation depth, include robust validation and tests, and do not shrink scope only because a deadline is near.";
-  } else {
-    instruction =
-      "Execution policy for this task: follow the provided context to balance scope and depth, stay focused on the requested outcome, and avoid unnecessary expansion.";
-  }
-
-  const context: string[] = [];
-
-  if (typeof guidance.remainingMinutes === "number") {
-    context.push(`About ${guidance.remainingMinutes} minutes remain before the attention deadline.`);
-  }
-
-  if (guidance.reason) {
-    context.push(`Reason: ${guidance.reason}`);
-  }
-
-  if (guidance.hints && guidance.hints.length > 0) {
-    context.push(`Hints: ${guidance.hints.join("; ")}`);
-  }
-
-  return `Wrap-Up instruction: ${[instruction, ...context].join(" ")}`;
 }

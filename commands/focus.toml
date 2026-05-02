@@ -1,2 +1,8 @@
-prompt = "@headsdown Set me to focus mode for {{args}}. If no duration is provided, assume 60 minutes."
 description = "Set HeadsDown focus mode"
+prompt = """
+# HeadsDown Focus
+
+Set the user to focus mode for {{args}}. If no duration is provided, assume 60 minutes.
+
+Use the `mcp_headsdown_headsdown_propose` tool to start a focus window.
+"""

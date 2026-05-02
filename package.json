@@ -24,7 +24,11 @@
   "files": [
     "dist",
     "gemini-extension.json",
+    "hooks",
     "skills",
+    "agents",
+    "commands",
+    "policies",
     "README.md",
     "LICENSE"
   ],

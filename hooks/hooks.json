@@ -1,0 +1,43 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "headsdown-session-start",
+            "description": "Initialize HeadsDown status at session start.",
+            "type": "command",
+            "command": "node ${extensionPath}${/}dist${/}hooks${/}session-start.js --extension-path ${extensionPath}"
+          }
+        ]
+      }
+    ],
+    "BeforeAgent": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "headsdown-before-agent",
+            "description": "Warn agent of user availability before planning.",
+            "type": "command",
+            "command": "node ${extensionPath}${/}dist${/}hooks${/}before-agent.js --extension-path ${extensionPath}"
+          }
+        ]
+      }
+    ],
+    "BeforeTool": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "name": "headsdown-tool-guard",
+            "description": "Block destructive tools when user is busy/offline.",
+            "type": "command",
+            "command": "node ${extensionPath}${/}dist${/}hooks${/}check-availability.js --extension-path ${extensionPath}"
+          }
+        ]
+      }
+    ]
+  }
+}

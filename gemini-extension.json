@@ -18,25 +18,13 @@
   "commands": [
     "./commands"
   ],
-  "hooks": [
-    {
-      "event": "SessionStart",
-      "command": "node ${extensionPath}/dist/hooks/session-start.js"
-    },
-    {
-      "event": "BeforeAgent",
-      "command": "node ${extensionPath}/dist/hooks/before-agent.js"
-    },
-    {
-      "event": "BeforeTool",
-      "command": "node ${extensionPath}/dist/hooks/check-availability.js"
-    }
-  ],
   "mcpServers": {
     "headsdown": {
       "command": "node",
       "args": [
-        "${extensionPath}/dist/index.js"
+        "${extensionPath}/dist/index.js",
+        "--extension-path",
+        "${extensionPath}"
       ]
     }
   },

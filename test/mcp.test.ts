@@ -35,10 +35,9 @@ describe("HeadsDown MCP Server", () => {
     const source = await readFile(new URL("../src/mcp/server.ts", import.meta.url), "utf8");
 
     expect(source).toContain("deliveryMode: parseDeliveryMode");
-    expect(source).toContain("wrapUpGuidance");
     expect(source).toContain("summary: summarizeAvailability");
-    expect(source).toContain("wrapUpInstruction");
-    expect(source).toContain("Execution policy for this task");
+    expect(source).toContain("wrapUpInstruction: directive.primaryDirective");
+    expect(source).toContain("describeExecutionDirective");
   });
 
   it("headsdown_outcome has expected required fields", async () => {

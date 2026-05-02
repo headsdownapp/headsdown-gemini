@@ -7,9 +7,18 @@ const ROOT = join(import.meta.dirname, "..");
 describe("package manifest", () => {
   it("keeps extension assets in published files", async () => {
     const pkg = JSON.parse(await readFile(join(ROOT, "package.json"), "utf-8"));
-    expect(pkg.files).toContain("dist");
-    expect(pkg.files).toContain("gemini-extension.json");
-    expect(pkg.files).toContain("skills");
+    const requiredFiles = [
+      "dist",
+      "gemini-extension.json",
+      "hooks",
+      "skills",
+      "agents",
+      "commands",
+      "policies"
+    ];
+    for (const file of requiredFiles) {
+      expect(pkg.files).toContain(file);
+    }
   });
 
   it("uses bundled SDK via devDependencies", async () => {
