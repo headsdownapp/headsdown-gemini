@@ -4,10 +4,3 @@ description = "Protect user focus by requiring approval for destructive tools wh
 decision = "ask_user"
 priority = 100
 toolName = ["replace", "write_file", "run_shell_command"]
-
-[[rule]]
-name = "headsdown-offline-gating"
-description = "Strict gating of all modifications when user is offline."
-decision = "deny"
-priority = 200
-toolName = "*"

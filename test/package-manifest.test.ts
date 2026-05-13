@@ -26,4 +26,10 @@ describe("package manifest", () => {
     expect(pkg.dependencies["@headsdown/sdk"]).toBeUndefined();
     expect(pkg.devDependencies["@headsdown/sdk"]).toBeTruthy();
   });
+
+  it("does not globally deny every tool in extension policy", async () => {
+    const policy = await readFile(join(ROOT, "policies", "headsdown.toml"), "utf-8");
+    expect(policy).not.toMatch(/decision\s*=\s*"deny"[\s\S]*toolName\s*=\s*"\*"/);
+    expect(policy).not.toMatch(/toolName\s*=\s*"\*"[\s\S]*decision\s*=\s*"deny"/);
+  });
 });
